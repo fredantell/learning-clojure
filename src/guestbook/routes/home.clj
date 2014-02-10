@@ -23,12 +23,24 @@
   [:ul.guests
    (for [{:keys [message name timestamp]}
          [{:message "Howdy" :name "Bob" :timestamp nil}
-          {:message "Hello" :name "Bobby" :timestamp nil}]]
+          {:message "Hello" :name "Bobby!" :timestamp nil}]]
      [:li
       [:blockquote message]
       [:p "-" [:cite name]]
       [:time timestamp]])])
 
+(defn save-message [& [name message]]
+  (cond
+   (empty? name)
+   (home name message "You forgot to leave a name!")
+   (empty? message)
+   (home name message "Don't you have something to say?")
+   :else
+   (do
+     (println name message)
+     (home))))
+
 (defroutes home-routes
-  (GET "/" [] (home)))
+  (GET "/" [] (home))
+  (POST "/" [name message] (save-message name message)))
 
