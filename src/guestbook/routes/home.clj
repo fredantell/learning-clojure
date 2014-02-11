@@ -21,7 +21,10 @@
 (defn home [& [name message error]]
   (layout/common
    [:h1 "Guestbook"]
-   [:p (str "Welcome to my guestbook " (session/get :user))]
+   [:p (str "Welcome to my guestbook"
+            (if (session/get :user)
+              (str ", " (session/get :user))
+              (str ".")))]
    [:p error]
    (show-guests)
    [:hr]
@@ -47,4 +50,3 @@
 (defroutes home-routes
   (GET "/" [name message error] (home))
   (POST "/" [name message] (save-message name message)))
-
