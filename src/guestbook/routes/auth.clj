@@ -8,8 +8,12 @@
             [noir.validation :refer
              [rule errors? has-value? on-error]]))
 
+(defn format-error [[error]]
+  [:p.error error])
+
 (defn control [field name text]
-  (list (label name text)
+  (list (on-error name format-error)
+        (label name text)
         (field name)
         [:br]))
 
@@ -20,9 +24,9 @@
             (control password-field :pass "Password")
             (control password-field :pass1 "Retype Password")
             (submit-button "Create Account"))))
+
 (defn login-page [& [error]]
   (layout/common
-   (if error [:div.error "Login error: " error])
    (form-to [:post "/login"]
             (control text-field :id "Screen name")
             (control password-field :pass "Password")
