@@ -44,6 +44,6 @@
      (home))))
 
 (defroutes home-routes
-  (GET "/" [] (home))
+  (GET "/" [name message error] (home))
   (POST "/" [name message] (save-message name message)))
 
