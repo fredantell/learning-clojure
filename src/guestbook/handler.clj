@@ -4,6 +4,7 @@
             [ring.middleware.file-info :refer [wrap-file-info]]
             [ring.middleware.session.memory :refer [memory-store]]
             [noir.session :as session]
+            [noir.validation :refer [wrap-noir-validation]]
             [hiccup.middleware :refer [wrap-base-url]]
             [compojure.handler :as handler]
             [compojure.route :as route]
@@ -28,7 +29,8 @@
       (handler/site)
       (wrap-base-url)
       (session/wrap-noir-session
-       {:store (memory-store)})))
+       {:store (memory-store)})
+      (wrap-noir-validation)))
 
 
 

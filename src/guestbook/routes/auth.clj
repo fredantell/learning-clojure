@@ -4,7 +4,9 @@
             [hiccup.form :refer
              [form-to label text-field password-field submit-button]]
             [noir.response :refer [redirect]]
-            [noir.session :as session]))
+            [noir.session :as session]
+            [noir.validation :refer
+             [rule errors? has-value? on-error]]))
 
 (defn control [field name text]
   (list (label name text)
@@ -27,17 +29,19 @@
             (submit-button "Login"))))
 
 (defn handle-login [& [id pass]]
-  (cond
-   (empty? id)
-   (login-page "screen name is required")
-   (empty? pass)
-   (login-page "password is required")
-   (and (= "foo" id) (= "bar" pass))
-   (do
-     (session/put! :user id)
-     (redirect "/"))
-   :else
-   (login-page "authentication failed")))
+  (rule (has-value? id)
+        [:id "screen name is required"])
+  (rule (= id "foo")
+        [:id "unknown user"])
+  (rule (has-value? pass)
+        [:pass "password is required"])
+  (rule (= pass "bar")
+        [:pass "invalid password"])
+  (if (errors? :id :pass)
+    (login-page)
+    (do
+      (session/put! :user id)
+      (redirect "/"))))
 
 (defroutes auth-routes
   (GET "/register" [_] (registration-page))
