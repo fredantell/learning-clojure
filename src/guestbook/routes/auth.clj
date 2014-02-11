@@ -25,7 +25,6 @@
             (control password-field :pass "Password")
             (submit-button "Login"))))
 
-
 (defroutes auth-routes
   (GET "/register" [_] (registration-page))
   (POST "/register" [id pass pass1]
@@ -35,8 +34,11 @@
   (GET "/login" [_] (login-page))
   (POST "/login" [id pass]
         (session/put! :user id)
+        (redirect "/"))
+  (GET "/logout" []
+       (layout/common
+        (form-to [:post "/logout"]
+                 (submit-button "Logout"))))
+  (POST "/logout" []
+        (session/clear!)
         (redirect "/")))
-
-;; (do
-;;           (println (str "\nlogged in as: " id "\nwith pwd: " pass))
-;;           (redirect "/"))
