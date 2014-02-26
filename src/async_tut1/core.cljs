@@ -34,11 +34,23 @@
 (defn user-query []
   (.-value (dom/getElement "query")))
 
+
+(defn render [results]
+  (str
+   "<ul>"
+   (apply str
+          (for [result results]
+            (str "<li>" result "</li>")))
+   "</ul>"))
+
 (defn init []
-  (let [clicks (listen (dom/getElement "search") "click")]
+  (let [clicks (listen (dom/getElement "search") "click")
+        results-view (dom/getElement "results")]
     (go (while true
           (<! clicks)
-          (.log js/console (<! (jsonp (query-url (user-query)))))))))
+          #_(.log js/console (<! (jsonp (query-url (user-query)))))
+          (let [[_ results] (<! (jsonp (query-url (user-query))))]
+            (set! (.-innerHTML results-view) (render results)))))))
 
 (init)
 
