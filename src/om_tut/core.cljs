@@ -17,11 +17,17 @@
 
 (def app-state (atom {:list ["Lion" "Zebra" "Buffalo" "Antelope"]}))
 
-(defn list-view [app owner]
+#_(defn list-view [app owner]
   (apply dom/ul nil
-         (map #(dom/li nil %) (:list app))))
+         (map #(dom/li %2 %) (:list app) (stripe))))
 
-(om/root list-view app-state
+#_(defn debug [app owner]
+  (reify
+    om/IRender
+    (render [this]
+            (dom/h2 nil "Debugddd.."))))
+
+(om/root debug app-state
          {:target (. js/document (getElementById "app"))})
 
 
