@@ -40,7 +40,13 @@
   (reify
     om/IRender
     (render [this]
-      (dom/li nil (display-name professor)))))
+      (dom/li nil
+        (display-name professor)
+        (dom/div nil (dom/label nil "Classes"))
+        (apply dom/ul nil
+          (let [profs-classes (:classes professor)
+                class-names (map #(% (:classes @app-state)) profs-classes)]
+            (map #(dom/li nil %) class-names)))))))
 
 (defmulti entry-view (fn [person _] (:type person)))
 
