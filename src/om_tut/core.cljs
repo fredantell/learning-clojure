@@ -1,41 +1,82 @@
 (ns om-tut.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [cljs.core.async :refer [put! chan <!]]))
+           (:require [om.core :as om :include-macros true]
+                     [om.dom :as dom :include-macros true]
+                     [clojure.string :as string]))
 
 (enable-console-print!)
 
-;; (def app-state (atom
-;;                 {:contacts
-;;                  [{:first "Ben" :last "Bitdiddle" :email "benb@mit.edu"}
-;;                   {:first "Alyssa" :middle-initial "P" :last "Hacker" :email "aphacker@mit.edu"}
-;;                   {:first "Eva" :middle "Lu" :last "Ator" :email "eval@mit.edu"}
-;;                   {:first "Louis" :last "Reasoner" :email "prolog@mit.edu"}
-;;                   {:first "Cy" :middle-initial "D" :last "Effect" :email "bugs@mit.edu"}
-;;                   {:first "Lem" :middle-initial "E" :last "Tweakit" :email "morebugs@mit.edu"}]}))
+(def app-state
+  (atom
+    {:people
+     [{:type :student :first "Ben" :last "Bitdiddle" :email "benb@mit.edu"}
+      {:type :student :first "Alyssa" :middle-initial "P" :last "Hacker"
+       :email "aphacker@mit.edu"}
+      {:type :professor :first "Gerald" :middle "Jay" :last "Sussman"
+       :email "metacirc@mit.edu" :classes [:6001 :6946]}
+      {:type :student :first "Eva" :middle "Lu" :last "Ator" :email "eval@mit.edu"}
+      {:type :student :first "Louis" :last "Reasoner" :email "prolog@mit.edu"}
+      {:type :professor :first "Hal" :last "Abelson" :email "evalapply@mit.edu"
+       :classes [:6001]}]
+     :classes
+     {:6001 "The Structure and Interpretation of Computer Programs"
+      :6946 "The Structure and Interpretation of Classical Mechanics"
+      :1806 "Linear Algebra"}}))
 
-(def app-state (atom {:list ["Lion" "Zebra" "Buffalo" "Antelope"]}))
+(defn middle-name [{:keys [middle middle-initial]}]
+  (cond
+    middle (str " " middle)
+    middle-initial (str " " middle-initial ".")))
 
-#_(defn list-view [app owner]
-  (apply dom/ul nil
-         (map #(dom/li %2 %) (:list app) (stripe))))
+(defn display-name [{:keys [first last] :as contact}]
+  (str last ", " first (middle-name contact)))
+
+(defn student-view [student owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/li nil (display-name student)))))
+
+(defn professor-view [professor owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/li nil (display-name professor)))))
+
+(defmulti entry-view (fn [person _] (:type person)))
+
+(defmethod entry-view :student
+  [person owner]
+  (student-view person owner))
+
+(defmethod entry-view :professor
+  [person owner]
+  (professor-view person owner))
+
+(defn registry-view [app owner]
+  (reify
+    om/IRenderState
+    (render-state [_ state]
+      (dom/div nil
+        (dom/h2 nil "Registry")
+               (apply dom/ul nil
+                 (om/build-all entry-view (:people app))
+               #_(dom/h3 nil (entry-view (:people @app-state))))))))
+
+(om/root registry-view app-state
+  {:target (. js/document (getElementById "registry"))})
+
+
+
+
 
 #_(defn debug [app owner]
   (reify
     om/IRender
     (render [this]
-            (dom/h2 nil "Debugddd.."))))
+            (dom/h2 nil "Test..."))))
 
-(om/root debug app-state
-         {:target (. js/document (getElementById "app"))})
-
-
-
-
-
-
-
+#_(om/root debug app-state
+         {:target (. js/document (getElementById "registry"))})
 
 
 
