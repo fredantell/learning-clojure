@@ -6,18 +6,23 @@
 
 (enable-console-print!)
 
+(def !manual (atom {:last-clicked 0}))
 (def target (.getElementById js/document "manual"))
+
+;;counter Widget
+;;..field button button
+(defn set-last-clicked [id]
+  (swap! !manual id ))
 
 (defn increase [e app {:keys [tally] :as state} owner]
   (om/set-state! owner :tally (inc tally))
-  (put! (:cc state) (:id state)))
+  (om/transact! app :lc (fn [] 5)))
 
 (defn decrease [e app state owner]
-  (om/set-state! owner :tally (dec (:tally state)))
-  (put! (:cc state) (:id state)))
+  (om/set-state! owner :tally (dec (:tally state))))
 
-(defn show [bool]
-  (if bool
+(defn display-click-alert [id]
+  (if (= (:last-clicked @!manual) id)
     #js {}
     #js {:display "none"}))
 
@@ -30,42 +35,47 @@
     (init-state [_]
       {:tally 10})
     om/IRenderState
-    (render-state [_ {:keys [tally id lc] :as state}]
+    (render-state [_ {:keys [tally] :as state}]
       (dom/div nil
         (println state)
         (dom/span nil tally)
         (dom/button #js {:onClick #(increase % app state owner )} "+")
         (dom/button #js {:onClick #(decrease % app state owner)} "-")
-        (dom/span #js {:style (show (= id lc))} "I was clicked")))))
+        (dom/span #js {:style (display-click-alert (:id state))} "I was clicked")))))
 
 (defn manual-counters [app owner opts]
   (reify
     om/IInitState
     (init-state [_]
-      {:last-clicked 1
-       :click-chan (chan)})
-    om/IWillMount
-    (will-mount [_]
-      (let [click-chan (om/get-state owner :click-chan)]
-        (go (loop []
-          (let [click-msg (<! click-chan)]
-            (println "You got a message")
-            (println click-msg)
-            (om/set-state! owner :last-clicked click-msg)
-            (println "New state is " (om/get-state owner :last-clicked)))
-              (recur)))))
+      {:last-clicked 0})
     om/IRenderState
     (render-state [_ {:keys [last-clicked] :as state}]
-      (println "I'm rendering")
+;;     #_(dom/div nil
+;;         (om/build one-counter app))
+;;       #_(dom/div nil
+;;         (om/build one-counter app)
+;;         (om/build one-counter app))
       (apply dom/div nil
-       (map
-        #(om/build
-          one-counter
-          app
-          {:init-state {:id % :lc (:last-clicked state) :cc (:click-chan state)}})
-        (range 0 10))))))
+       (map #(om/build one-counter app {:init-state {:id % :lc last-clicked}}) (range 0 10))))
+      #_(apply dom/div nil
+       (om/build-all one-counter (repeat 10 app) {}))))
 
 (om/root manual-counters !manual {:target target})
+
+
+(def !id-atom (atom (map (fn [x] [{:id x :clicked-last false}]) (range 0 10))))
+
+@!id-atom
+
+
+
+
+
+
+
+
+
+
 
 
 
