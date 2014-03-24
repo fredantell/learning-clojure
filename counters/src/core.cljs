@@ -62,9 +62,10 @@
         #(om/build
           one-counter
           app
-          {:init-state {:id % :lc (:last-clicked state) :cc (:click-chan state)}})
+          {:state {:id % :lc (:last-clicked state) :cc (:click-chan state)}})
         (range 0 10))))))
 
+(def !manual (atom {}))
 (om/root manual-counters !manual {:target target})
 
 
