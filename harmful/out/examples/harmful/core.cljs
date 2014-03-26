@@ -23,92 +23,92 @@
               (merge (:render-state states) (:pending-state states)))
             (dissoc :pending-state)))))))
 
-;; (def no-local-state-meths
-;;   (assoc om/pure-methods
-;;     :getInitialState
-;;     (fn []
-;;       (this-as this
-;;         (let [c      (om/children this)
-;;               props  (.-props this)
-;;               istate (or (aget props "__om_init_state") {})
-;;               id     (or (::om/id istate)
-;;                          (.getNextUniqueId (.getInstance IdGenerator)))
-;;               state  (merge (dissoc istate ::om/id)
-;;                        (when (satisfies? om/IInitState c)
-;;                          (om/allow-reads (om/init-state c))))
-;;               spath  [:state-map id :render-state]]
-;;           (aset props "__om_init_state" nil)
-;;           (swap! (get-gstate this) assoc-in spath state)
-;;           #js {:__om_id id})))
-;;     :componentWillMount
-;;     (fn []
-;;       (this-as this
-;;         (om/merge-props-state this)
-;;         (let [c (om/children this)]
-;;           (when (satisfies? om/IWillMount c)
-;;             (om/allow-reads (om/will-mount c))))
-;;         (merge-pending-state this)))
-;;     :componentWillUnmount
-;;     (fn []
-;;       (this-as this
-;;         (let [c     (om/children this)
-;;               spath [:state-map (om/id this)]]
-;;           (when (satisfies? om/IWillUnmount c)
-;;             (om/allow-reads (om/will-unmount c)))
-;;           (swap! (get-gstate this) update-in spath dissoc))))
-;;     :shouldComponentUpdate
-;;     (fn [next-props next-state]
-;;       (this-as this
-;;         (om/allow-reads
-;;           (let [props (.-props this)
-;;                 state (.-state this)
-;;                 c     (om/children this)]
-;;             ;; need to merge in props state first
-;;             (om/merge-props-state this next-props)
-;;             (if (satisfies? om/IShouldUpdate c)
-;;               (om/should-update c
-;;                 (om/get-props #js {:props next-props})
-;;                 (om/-get-state this))
-;;               (cond
-;;                 (not (identical? (om/-value (aget props "__om_cursor"))
-;;                                  (om/-value (aget next-props "__om_cursor"))))
-;;                 true
+(def no-local-state-meths
+  (assoc om/pure-methods
+    :getInitialState
+    (fn []
+      (this-as this
+        (let [c      (om/children this)
+              props  (.-props this)
+              istate (or (aget props "__om_init_state") {})
+              id     (or (::om/id istate)
+                         (.getNextUniqueId (.getInstance IdGenerator)))
+              state  (merge (dissoc istate ::om/id)
+                       (when (satisfies? om/IInitState c)
+                         (om/allow-reads (om/init-state c))))
+              spath  [:state-map id :render-state]]
+          (aset props "__om_init_state" nil)
+          (swap! (get-gstate this) assoc-in spath state)
+          #js {:__om_id id})))
+    :componentWillMount
+    (fn []
+      (this-as this
+        (om/merge-props-state this)
+        (let [c (om/children this)]
+          (when (satisfies? om/IWillMount c)
+            (om/allow-reads (om/will-mount c))))
+        (merge-pending-state this)))
+    :componentWillUnmount
+    (fn []
+      (this-as this
+        (let [c     (om/children this)
+              spath [:state-map (om/id this)]]
+          (when (satisfies? om/IWillUnmount c)
+            (om/allow-reads (om/will-unmount c)))
+          (swap! (get-gstate this) update-in spath dissoc))))
+    :shouldComponentUpdate
+    (fn [next-props next-state]
+      (this-as this
+        (om/allow-reads
+          (let [props (.-props this)
+                state (.-state this)
+                c     (om/children this)]
+            ;; need to merge in props state first
+            (om/merge-props-state this next-props)
+            (if (satisfies? om/IShouldUpdate c)
+              (om/should-update c
+                (om/get-props #js {:props next-props})
+                (om/-get-state this))
+              (cond
+                (not (identical? (om/-value (aget props "__om_cursor"))
+                                 (om/-value (aget next-props "__om_cursor"))))
+                true
 
-;;                 (not (nil? (get-in @(get-gstate this) [:state-map (om/id this) :pending-state])))
-;;                 true
+                (not (nil? (get-in @(get-gstate this) [:state-map (om/id this) :pending-state])))
+                true
 
-;;                 (not (== (aget props "__om_index") (aget next-props "__om_index")))
-;;                 true
+                (not (== (aget props "__om_index") (aget next-props "__om_index")))
+                true
 
-;;                 :else false))))))
-;;     :componentWillUpdate
-;;     (fn [next-props next-state]
-;;       (this-as this
-;;         (let [props  (.-props this)
-;;               c      (om/children this)]
-;;           (when (satisfies? om/IWillUpdate c)
-;;             (let [state (.-state this)]
-;;               (om/allow-reads
-;;                 (om/will-update c
-;;                   (om/get-props #js {:props next-props})
-;;                   (om/-get-state this))))))
-;;         (merge-pending-state this)))
-;;     :componentDidUpdate
-;;     (fn [prev-props prev-state]
-;;       (this-as this
-;;         (let [c      (om/children this)
-;;               gstate (get-gstate this)
-;;               states (get-in @gstate [:state-map (om/id this)])
-;;               spath  [:state-map (om/id this)]]
-;;           (when (satisfies? om/IDidUpdate c)
-;;             (let [state (.-state this)]
-;;               (om/allow-reads
-;;                 (om/did-update c
-;;                   (om/get-props #js {:props prev-props})
-;;                   (or (:previous-state states)
-;;                       (:render-state states))))))
-;;           (when (:previous-state states)
-;;             (swap! gstate update-in spath dissoc :previous-state)))))))
+                :else false))))))
+    :componentWillUpdate
+    (fn [next-props next-state]
+      (this-as this
+        (let [props  (.-props this)
+              c      (om/children this)]
+          (when (satisfies? om/IWillUpdate c)
+            (let [state (.-state this)]
+              (om/allow-reads
+                (om/will-update c
+                  (om/get-props #js {:props next-props})
+                  (om/-get-state this))))))
+        (merge-pending-state this)))
+    :componentDidUpdate
+    (fn [prev-props prev-state]
+      (this-as this
+        (let [c      (om/children this)
+              gstate (get-gstate this)
+              states (get-in @gstate [:state-map (om/id this)])
+              spath  [:state-map (om/id this)]]
+          (when (satisfies? om/IDidUpdate c)
+            (let [state (.-state this)]
+              (om/allow-reads
+                (om/did-update c
+                  (om/get-props #js {:props prev-props})
+                  (or (:previous-state states)
+                      (:render-state states))))))
+          (when (:previous-state states)
+            (swap! gstate update-in spath dissoc :previous-state)))))))
 
 (def NoLocal
   (js/React.createClass
@@ -205,12 +205,13 @@
     (render [this]
       (dom/h2 nil "Hello!"))))
 
-(om/root debug app-state {:target (.getElementById js/document "app")})
+;; (om/root debug app-state {:target (.getElementById js/document "app")})
 
 (om/root
   (fn [app owner]
     (om/component
-      (om/build counter-view app {:ctor no-local})))
+     (om/build counter-view app {:ctor no-local})
+     (om/build counter-view app {:ctor no-local})))
   app-state
   {:target (.getElementById js/document "app")
    :instrument
