@@ -3,10 +3,8 @@
             [liberator.core :refer [defresource resource request-method-in]]
             [liberator-service.views.layout :as layout]))
 
-;; (defn home []
-;;   (layout/common [:h1 "Hello World!"]))
-
 (defresource home
+  :service-available? true
   :handle-ok "This works!"
   :etag "fixed-etag"
   :available-media-types ["text/plain"])
