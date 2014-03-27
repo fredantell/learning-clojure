@@ -5,6 +5,7 @@
 
 (defresource home
   :service-available? true
+  :allowed-methods [:get :put]
   :handle-ok "This works!"
   :etag "fixed-etag"
   :available-media-types ["text/plain"])
