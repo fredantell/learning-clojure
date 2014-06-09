@@ -36,8 +36,11 @@
     (render [this]
       (dom/li nil (display-name student)))))
 
-(defn professor-view [professor owner]
+(defn professor-view [professor owner opts]
   (reify
+    om/IDisplayName
+    (display-name [_]
+      (or (:react-name opts) "Professor View"))
     om/IRender
     (render [this]
       (dom/li nil
@@ -71,18 +74,109 @@
 (om/root registry-view app-state
   {:target (. js/document (getElementById "registry"))})
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Classes view
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(extend-type string
+  ICloneable
+  (-clone [s] (js/String. s)))
+
+;; (extend-type PersistentVector
+;;   ICloneable
+;;   (-clone [v] [v]))
+
+(extend-type js/String
+  ICloneable
+  (-clone [s] (js/String s))
+  om/IValue
+  (-value [s] (str s)))
+
+(defn display [editing?]
+  (if editing?
+    #js {}
+    #js {:display "none"}))
+
+(defn handle-change [e text owner]
+  (om/transact! text (fn [_] (.. e -target -value))))
+
+(defn commit-change [text owner]
+  (om/set-state! owner :editing false))
+
+(defn class-view [one-class owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/li nil (get one-class 1)))))
+
+(defn editing-start [event editing owner]
+  (println "Editing Started")
+  (println event)
+  (println editing)
+  (println owner)
+  (om/set-state! owner editing :true)
+  (println editing))
 
 
+#_(defn editable [element owner]
+  (reify
 
+    om/IInitState
+    (init-state [this]
+                {:editing false})
+    om/IRenderState
+    (render-state [_ {:keys [editing]}]
+      (dom/div nil
+       (dom/span #js {:style (display (not editing))} (om/value element))
+       (println element)
+       (dom/button #js {:onClick #(om/set-state! owner :editing true) } "Edit")
+       (dom/input #js {:style (display editing)
+                       :value (om/value element)
+                       :onChange #(println "Changing")
+                       :onKeyPress #(when (== (.-keyCode %) 13)
+                                      (commit-change (om/value element) owner))
+                       :onBlur (println "blurred")})))))
 
-#_(defn debug [app owner]
+(defn editable [text owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:editing false})
+    om/IRenderState
+    (render-state [_ {:keys [editing]}]
+      (dom/li nil
+        (dom/span #js {:style (display (not editing))} (om/value text))
+        (dom/input
+          #js {:style (display editing)
+               :value (om/value text)
+               :onChange #(handle-change % text owner)
+               :onKeyPress #(when (== (.-keyCode %) 13)
+                              (commit-change text owner))
+               :onBlur (fn [e] (commit-change text owner))})
+        (dom/button
+          #js {:style (display (not editing))
+               :onClick #(om/set-state! owner :editing true)}
+          "Edit")))))
+
+(defn classes [app owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div nil
+        (dom/h2 nil "Classes")
+        (apply dom/ul nil
+         (om/build-all editable #_class-view (vals (:classes app))))))))
+
+#_(type (vals (:classes @app-state)))
+
+(defn debug [app owner]
   (reify
     om/IRender
     (render [this]
             (dom/h2 nil "Test..."))))
 
-#_(om/root debug app-state
-         {:target (. js/document (getElementById "registry"))})
+(om/root classes app-state
+         {:target (. js/document (getElementById "classes"))})
 
 
 
@@ -171,3 +265,4 @@
 ;;       (dom/div nil?(dom/h2 nil "Contact List")
 ;;                (apply dom/ul nil
 ;;                  (om/build-all contact-view (:contacts app)))))))
+
