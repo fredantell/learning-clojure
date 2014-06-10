@@ -4,6 +4,14 @@ pom.xml
 /classes/
 /out/
 /target/
-.lein-deps-sum
 .lein-repl-history
 .lein-plugins/
+/checkouts
+*.class
+.lein-deps-sum
+.lein-failures
+.lein-plugins
+.lein-env
+.nrepl-port
+.gitignore
+db.sq3
